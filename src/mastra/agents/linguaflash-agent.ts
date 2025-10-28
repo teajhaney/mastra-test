@@ -1,8 +1,9 @@
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
-import { scorers } from '../scorers/weather-scorer';
+
 import { translateTool } from '../tools/linguaflash-tool';
+import { scorers } from '../scorers/weather-scorer';
 
 export const linguaFlashAgent = new Agent({
   name: 'LinguaFlash Agent',
