@@ -1,7 +1,7 @@
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
-
+import { openai } from '@ai-sdk/openai';
 import { translateTool } from '../tools/linguaflash-tool';
 import { scorers } from '../scorers/translation-scorer';
 
@@ -17,7 +17,8 @@ export const linguaFlashAgent = new Agent({
       - If the user asks for context-specific translations (e.g., formal/informal), adapt accordingly.
       Use the translateTool to detect source language and fetch translation data.
   `,
-  model: 'google/gemini-2.5-pro',
+  model: 'google/gemini-2.5-flash',
+  //   model: openai('gpt-4o-mini'),
 
   tools: { translateTool },
   scorers: {
