@@ -3,7 +3,7 @@ import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
 
 import { translateTool } from '../tools/linguaflash-tool';
-import { scorers } from '../scorers/weather-scorer';
+import { scorers } from '../scorers/translation-scorer';
 
 export const linguaFlashAgent = new Agent({
   name: 'LinguaFlash Agent',
