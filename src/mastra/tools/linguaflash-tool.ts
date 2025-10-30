@@ -15,7 +15,7 @@ export const translateTool = createTool({
     translation: z.string().describe('Translated text'),
   }),
   execute: async ({ context }) => {
-    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new Error('GOOGLE_GEMINI_API_KEY environment variable is required');
     }
