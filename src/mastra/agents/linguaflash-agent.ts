@@ -17,8 +17,8 @@ export const linguaFlashAgent = new Agent({
       - If the user asks for context-specific translations (e.g., formal/informal), adapt accordingly.
       Use the translateTool to detect source language and fetch translation data.
   `,
-  model: 'google/gemini-2.5-flash',
-  //   model: openai('gpt-4o-mini'),
+  //   model: 'google/gemini-2.5-flash',
+  model: openai('gpt-4o-mini'),
 
   tools: { translateTool },
   scorers: {
