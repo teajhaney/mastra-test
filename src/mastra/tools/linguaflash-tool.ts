@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const translateTool = createTool({
   id: 'linguaFlash-translate',
-  description: 'Get current weather for a location',
+  description: 'Detects source language and translates text accurately into a specified target language',
   inputSchema: z.object({
     text: z.string().describe('Text to translate'),
     targetLang: z.string().describe('Target language name (e.g., "Spanish")'),
@@ -32,16 +32,6 @@ export const translateTool = createTool({
 
       Text: "${context.text}"
     `;
-	  
-// 	  Detect the source language of the following text and translate it precisely to ${targetLang}.
-// Respond ONLY with valid JSON in this exact format:
-// {
-//   "detected": "ISO language code (e.g., 'en')",
-//   "translation": "The translated text"
-// }
-// Do NOT add any other text, explanation, or commentary. 
-// Reply ONLY with this JSON object, nothing else.
-// Text: "${text}"
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
