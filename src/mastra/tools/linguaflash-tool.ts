@@ -15,7 +15,7 @@ export const translateTool = createTool({
     translation: z.string().describe('Translated text'),
   }),
   execute: async ({ context }) => {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
       throw new Error('GOOGLE_GEMINI_API_KEY environment variable is required');
     }
@@ -28,9 +28,20 @@ export const translateTool = createTool({
         "translation": "The translated text",
       }
       Do not add any explanations or extra text.
+	  Reply ONLY with this JSON object, nothing else.
 
       Text: "${context.text}"
     `;
+	  
+// 	  Detect the source language of the following text and translate it precisely to ${targetLang}.
+// Respond ONLY with valid JSON in this exact format:
+// {
+//   "detected": "ISO language code (e.g., 'en')",
+//   "translation": "The translated text"
+// }
+// Do NOT add any other text, explanation, or commentary. 
+// Reply ONLY with this JSON object, nothing else.
+// Text: "${text}"
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
