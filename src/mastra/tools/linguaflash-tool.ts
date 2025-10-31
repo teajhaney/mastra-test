@@ -11,7 +11,7 @@ export const translateTool = createTool({
   outputSchema: z.object({
     text: z.string().describe('Original text'),
     targetLang: z.string().describe('Target language'),
-    detectedLang: z.string().describe('ISO language code (e.g., "en")'),
+    detectedLang: z.string().describe('etected language (e.g., "English")'),
     translation: z.string().describe('Translated text'),
   }),
   execute: async ({ context }) => {
@@ -24,7 +24,7 @@ export const translateTool = createTool({
       Detect the source language of the following text and translate it precisely to ${context.targetLang}.
       Respond ONLY with valid JSON in this exact format: 
       {
-        "detected": "ISO language code (e.g., 'en' for English)",
+        "detected": "The detected language (e.g, "English")",
         "translation": "The translated text",
       }
       Do not add any explanations or extra text.
