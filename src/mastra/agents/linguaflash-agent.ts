@@ -62,8 +62,7 @@ export const linguaFlashAgent = new Agent({
         rate: 0.05, // Reduced to 5% for even less overhead
       },
     },
-    // Removed completeness scorer for production - adds latency
-    // Removed translation scorer - uses slow gemini-2.5-pro model
+
   },
   memory: new Memory({
     storage: new LibSQLStore({
