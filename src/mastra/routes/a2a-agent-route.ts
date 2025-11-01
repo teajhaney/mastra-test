@@ -55,21 +55,39 @@ export const a2aAgentRoute = registerApiRoute('/a2a/agent/:agentId', {
         messagesList = messages;
       }
 
-      // Convert A2A messages to Mastra format
-      const mastraMessages = messagesList.map((msg: Message) => ({
-        role: msg.role,
-        content:
-          msg.parts
-            ?.map(part => {
-              if (part.kind === 'text') return part.text;
-              if (part.kind === 'data') return JSON.stringify(part.data);
-              return '';
-            })
-            .join('\n') || '',
-      }));
+      // Convert A2A messages to Mastra format - optimize for speed
+      // Extract text content more efficiently, prioritize text parts
+      const mastraMessages = messagesList
+        .map((msg: Message) => {
+          const textParts = msg.parts
+            ?.filter(part => part.kind === 'text')
+            .map(part => part.text)
+            .join(' ')
+            .trim();
 
-      // Execute agent
-      //   const response = await agent.generate(mastraMessages);
+          // Only include data parts if no text parts exist (reduces token usage)
+          const content =
+            textParts ||
+            msg.parts
+              ?.filter(part => part.kind === 'data')
+              .map(part =>
+                typeof part.data === 'string'
+                  ? part.data
+                  : JSON.stringify(part.data)
+              )
+              .join(' ')
+              .trim() ||
+            '';
+
+          return {
+            role: msg.role,
+            content,
+          };
+        })
+        .filter(msg => msg.content.length > 0); // Filter empty messages
+
+      // Execute agent with optimized message format
+      // Use simpler format to reduce processing overhead
       const response = await agent.generate(
         mastraMessages.map(msg => `${msg.role}: ${msg.content}`)
       );
