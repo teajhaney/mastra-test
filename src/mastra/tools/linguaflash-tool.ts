@@ -1,8 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
-
-
 export const translateTool = createTool({
   id: 'linguaFlash-translate',
   description:
@@ -45,9 +43,6 @@ Respond ONLY with valid JSON in this exact format (no other text):
     // Use faster model endpoint
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // Reduced to 8s timeout for faster failures
-
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -62,10 +57,7 @@ Respond ONLY with valid JSON in this exact format (no other text):
             topK: 20, // Limit choices for faster responses
           },
         }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -108,11 +100,8 @@ Respond ONLY with valid JSON in this exact format (no other text):
         targetLang: normalizedTargetLang,
       };
 
-  
-
       return result;
     } catch (error) {
-      clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Translation request timed out after 10 seconds');
       }
