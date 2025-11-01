@@ -40,7 +40,7 @@ export const linguaFlashAgent = new Agent({
       
       RESPONSE FORMAT:
       After translation, respond: "Translation: [translated text]"
-      Optionally add: "(From [detected language] to [target language]])"
+      Optionally add on the next line: "-(From [detected language] to [target language]])"
       
       NO CONFIRMATIONS - JUST TRANSLATE!
   `,
@@ -62,7 +62,6 @@ export const linguaFlashAgent = new Agent({
         rate: 0.05, // Reduced to 5% for even less overhead
       },
     },
-
   },
   memory: new Memory({
     storage: new LibSQLStore({
