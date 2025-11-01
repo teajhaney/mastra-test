@@ -1,44 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
-// Simple in-memory cache for translations (consider Redis for production)
-const translationCache = new Map<
-  string,
-  { detectedLang: string; translation: string; timestamp: number }
->();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
-const CACHE_MAX_SIZE = 1000; // Limit cache size
 
-// Generate cache key
-function getCacheKey(text: string, targetLang: string): string {
-  return `${text.toLowerCase().trim()}:${targetLang.toLowerCase().trim()}`;
-}
-
-// Clean old cache entries periodically
-function cleanCache() {
-  const now = Date.now();
-  const keysToDelete: string[] = [];
-
-  for (const [key, value] of translationCache.entries()) {
-    if (now - value.timestamp > CACHE_TTL) {
-      keysToDelete.push(key);
-    }
-  }
-
-  keysToDelete.forEach(key => translationCache.delete(key));
-
-  // If cache is still too large, remove oldest entries
-  if (translationCache.size > CACHE_MAX_SIZE) {
-    const sorted = Array.from(translationCache.entries()).sort(
-      (a, b) => a[1].timestamp - b[1].timestamp
-    );
-    const toRemove = sorted.slice(0, translationCache.size - CACHE_MAX_SIZE);
-    toRemove.forEach(([key]) => translationCache.delete(key));
-  }
-}
-
-// Clean cache every hour
-setInterval(cleanCache, 60 * 60 * 1000);
 
 export const translateTool = createTool({
   id: 'linguaFlash-translate',
@@ -67,18 +30,6 @@ export const translateTool = createTool({
     // Normalize inputs for caching
     const normalizedText = context.text.trim();
     const normalizedTargetLang = context.targetLang.trim();
-    const cacheKey = getCacheKey(normalizedText, normalizedTargetLang);
-
-    // Check cache first
-    const cached = translationCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return {
-        detectedLang: cached.detectedLang,
-        translation: cached.translation,
-        text: normalizedText,
-        targetLang: normalizedTargetLang,
-      };
-    }
 
     // Optimized prompt with explicit JSON schema
     const prompt = `You are a translation API. Translate the text to ${normalizedTargetLang} and detect the source language.
@@ -129,102 +80,35 @@ Respond ONLY with valid JSON in this exact format (no other text):
       }
 
       const data = await response.json();
-
-      // Handle different possible response structures
-      let output = '';
-      if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        output = data.candidates[0].content.parts[0].text;
-      } else if (data.text) {
-        output = data.text;
-      } else if (typeof data === 'string') {
-        output = data;
-      } else {
-        // Try to find JSON in the response structure
-        output = JSON.stringify(data);
-      }
-
-      // Clean the output - remove markdown code blocks if present
-      let cleanedOutput = output.trim();
-      if (cleanedOutput.startsWith('```json')) {
-        cleanedOutput = cleanedOutput
-          .replace(/^```json\s*/i, '')
-          .replace(/\s*```$/i, '');
-      } else if (cleanedOutput.startsWith('```')) {
-        cleanedOutput = cleanedOutput
-          .replace(/^```\s*/i, '')
-          .replace(/\s*```$/i, '');
-      }
+      const output = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
       let parsed;
       try {
-        parsed = JSON.parse(cleanedOutput);
-      } catch (parseError) {
+        parsed = JSON.parse(output);
+      } catch (e) {
         // Fallback: try to extract JSON from response
-        const jsonMatch = cleanedOutput.match(/\{[\s\S]*\}/);
+        const jsonMatch = output.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          try {
-            parsed = JSON.parse(jsonMatch[0]);
-          } catch (e2) {
-            console.error('JSON Parse Error:', {
-              originalOutput: output.substring(0, 500),
-              cleanedOutput: cleanedOutput.substring(0, 500),
-              match: jsonMatch[0].substring(0, 500),
-            });
-            throw new Error(
-              `Failed to parse JSON response. Raw output: ${output.substring(0, 200)}`
-            );
-          }
+          parsed = JSON.parse(jsonMatch[0]);
         } else {
-          console.error('No JSON found in response:', {
-            originalOutput: output.substring(0, 500),
-            cleanedOutput: cleanedOutput.substring(0, 500),
-          });
-          throw new Error(
-            `No valid JSON found in response: ${output.substring(0, 200)}`
-          );
+          throw new Error(`Invalid JSON response: ${output}`);
         }
       }
 
-      // Robust field extraction - handle different field names
-      const detectedLang =
-        parsed.detected ||
-        parsed.detectedLang ||
-        parsed.detectedLanguage ||
-        parsed.source ||
-        parsed.sourceLanguage ||
-        'Unknown';
-
-      const translation =
-        parsed.translation ||
-        parsed.translated ||
-        parsed.text ||
-        parsed.result ||
-        '';
-
-      if (!translation || translation.trim().length === 0) {
-        console.error('Missing translation in response:', {
-          parsed,
-          detectedLang,
-          translation,
-        });
+      if (!parsed.detected || !parsed.translation) {
         throw new Error(
-          `Invalid response format: translation field is empty. Response: ${JSON.stringify(parsed).substring(0, 200)}`
+          `Invalid response format: missing detected or translation field`
         );
       }
 
       const result = {
-        detectedLang: detectedLang.toString().trim() || 'Unknown',
-        translation: translation.toString().trim(),
+        detectedLang: parsed.detected,
+        translation: parsed.translation,
         text: normalizedText,
         targetLang: normalizedTargetLang,
       };
 
-      // Cache the result
-      translationCache.set(cacheKey, {
-        detectedLang: result.detectedLang,
-        translation: result.translation,
-        timestamp: Date.now(),
-      });
+  
 
       return result;
     } catch (error) {
