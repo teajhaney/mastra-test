@@ -46,10 +46,10 @@ export const linguaFlashAgent = new Agent({
   `,
 
   // Using fastest model for lowest latency
-  model: 'google/gemini-2.0-flash-lite',
+//   model: 'google/gemini-2.0-flash-lite',
   //   model: 'google/gemini-2.0-flash-exp',
   //   model: 'google/gemini-2.0-flash',
-  // model: 'google/gemini-2.5-flash',
+  model: 'google/gemini-2.5-flash',
 
   tools: { translateTool },
 

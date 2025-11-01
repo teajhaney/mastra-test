@@ -41,7 +41,7 @@ Respond ONLY with valid JSON in this exact format (no other text):
 }`;
 
     // Use faster model endpoint
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
 
     try {
       const response = await fetch(url, {
