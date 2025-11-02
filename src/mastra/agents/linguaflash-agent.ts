@@ -37,16 +37,26 @@ export const linguaFlashAgent = new Agent({
       
       IF NO TARGET LANGUAGE FOUND:
       Only then ask: "What language would you like this translated to?"
-      
+
+      IF MULTIPLE TARGET LANGUAGES FOUND:
+      Translate the text to each target language separately.
+      Start each new translation on a separate line by adding a newline character (“\n”) between translations.
+      Example:
+      Korean: 안녕하세요\n
+      Spanish: Hola\n
+      French: Bonjour\n
+
       RESPONSE FORMAT:
-      After translation, respond: "Translation: [translated text]"
-      Optionally add on the next line: "-(From [detected language] to [target language]])"
-      
+      After translation, respond with each translation separated by a newline (“\n”) in this format:
+      "**[target language]**: [translated text]\n"
+      Add the detected language line on a separate line:
+      "- (Translated from [detected language])"
+
       NO CONFIRMATIONS - JUST TRANSLATE!
   `,
 
   // Using fastest model for lowest latency
-//   model: 'google/gemini-2.0-flash-lite',
+  //   model: 'google/gemini-2.0-flash-lite',
   //   model: 'google/gemini-2.0-flash-exp',
   //   model: 'google/gemini-2.0-flash',
   model: 'google/gemini-2.5-flash',
@@ -54,15 +64,15 @@ export const linguaFlashAgent = new Agent({
   tools: { translateTool },
 
   // Reduced scorer overhead - removed expensive translation scorer, reduced sampling
-  scorers: {
-    toolCallAppropriateness: {
-      scorer: scorers.toolCallAppropriatenessScorer,
-      sampling: {
-        type: 'ratio',
-        rate: 0.05, // Reduced to 5% for even less overhead
-      },
-    },
-  },
+//   scorers: {
+//     toolCallAppropriateness: {
+//       scorer: scorers.toolCallAppropriatenessScorer,
+//       sampling: {
+//         type: 'ratio',
+//         rate: 0.05, // Reduced to 5% for even less overhead
+//       },
+//     },
+//   },
   memory: new Memory({
     storage: new LibSQLStore({
       url: 'file:../mastra.db', // path is relative to the .mastra/output directory
