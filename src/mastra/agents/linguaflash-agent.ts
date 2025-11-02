@@ -63,16 +63,6 @@ export const linguaFlashAgent = new Agent({
 
   tools: { translateTool },
 
-  // Reduced scorer overhead - removed expensive translation scorer, reduced sampling
-//   scorers: {
-//     toolCallAppropriateness: {
-//       scorer: scorers.toolCallAppropriatenessScorer,
-//       sampling: {
-//         type: 'ratio',
-//         rate: 0.05, // Reduced to 5% for even less overhead
-//       },
-//     },
-//   },
   memory: new Memory({
     storage: new LibSQLStore({
       url: 'file:../mastra.db', // path is relative to the .mastra/output directory
